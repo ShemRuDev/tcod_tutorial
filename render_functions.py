@@ -2,6 +2,9 @@ import tcod as libtcod
 
 from enum import Enum
 
+from game_states import GameStates
+from menus import inventory_menu
+
 # Low priority means closer to the ground
 class RenderOrder(Enum):
     CORPSE = 1
@@ -35,7 +38,7 @@ def render_bar(panel, x, y, total_width, name, value, maximum, bar_color, back_c
 
 # Render Entities
 def render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_width, screen_height, 
-                ui_panel, bar_width, ui_panel_height, ui_panel_y, message_log, mouse, colors):
+                ui_panel, bar_width, ui_panel_height, ui_panel_y, message_log, mouse, game_state, colors):
     
     # Draw all the tiles in the game map
     if fov_recompute:
@@ -81,6 +84,15 @@ def render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_w
 
     # TODO: WHAT THE HECK blit IS DOING?
     libtcod.console_blit(ui_panel, 0, 0, screen_width, ui_panel_height, 0, 0, ui_panel_y)
+
+    # Check for MENUS
+    if game_state in (GameStates.SHOW_INVENTORY, GameStates.DROP_INVENTORY):
+        if game_state == GameStates.SHOW_INVENTORY:
+            inv_title = 'Press the key next to an item to use it, or Esc to cancel.\n'
+        else:
+            inv_title = 'Press the key next to an item to drop it, or Esc to cancel.\n'
+
+        inventory_menu(con, inv_title, player.inventory, 50, screen_width, screen_height)
 
 def clear_all(con, entities):
     for entity in entities:

@@ -1,7 +1,9 @@
 import tcod as libtcod
 
-from game_states import GameStates
+from components.item import Item
+
 from render_functions import RenderOrder
+from game_states import GameStates
 from game_messages import Message
 
 def kill_player(player):
@@ -20,5 +22,6 @@ def kill_monster(monster):
     monster.fighter = None
     monster.ai = None
     monster.name = 'remains of ' + monster.name
+    monster.item = Item()
 
     return death_message
