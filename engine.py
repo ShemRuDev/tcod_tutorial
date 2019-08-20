@@ -1,4 +1,5 @@
 import tcod as libtcod
+import tcod.event as libevent
 
 from map_objects.game_map import GameMap
 from components.fighter import Fighter
@@ -57,8 +58,8 @@ def main():
     # Consoles setup
     libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_TCOD)
     libtcod.console_init_root(screen_width, screen_height, 'First Shem RL. Thanks Tutorial', False)
-    con = libtcod.console_new(screen_width, screen_height)
-    ui_panel = libtcod.console_new(screen_width, ui_panel_height)
+    con = libtcod.console.Console(screen_width, screen_height)
+    ui_panel = libtcod.console.Console(screen_width, ui_panel_height)
 
     # Gamemap setup
     game_map = GameMap(map_width, map_height)
@@ -72,7 +73,7 @@ def main():
 
     # WARN Check tcod.event for QUIT events
     while not libtcod.console_is_window_closed():
-        libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS | libtcod.EVENT_MOUSE, key, mouse)
+        libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS | libtcod.EVENT_MOUSE, key, mouse)        
 
         if fov_recompute:
             recompute_fov(fov_map, player.x, player.y, fov_radius, fov_light_walls, fov_algorithm)
