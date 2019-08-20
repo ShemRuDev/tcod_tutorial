@@ -8,9 +8,36 @@ class RenderOrder(Enum):
     ITEM = 2
     ACTOR = 3
 
-def render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_width, screen_height, colors):
-    # Draw all the tiles in the game map
+def get_names_under_mouse(mouse, entities, fov_map):
+    (x, y) = (mouse.cx, mouse.cy)
 
+    names = [entity.name for entity in entities
+            if entity.x == x and entity.y == y and libtcod.map_is_in_fov(fov_map, entity.x, entity.y)]
+    names = ', '.join(names)
+
+    return names.capitalize()
+
+# Render UI
+# panel - Console for UI
+def render_bar(panel, x, y, total_width, name, value, maximum, bar_color, back_color):
+    bar_width = int(float(value) / maximum * total_width)
+
+    libtcod.console_set_default_background(panel, back_color)
+    libtcod.console_rect(panel, x, y, total_width, 1, False, libtcod.BKGND_SCREEN)
+
+    libtcod.console_set_default_background(panel, bar_color)
+    if bar_width > 0:
+        libtcod.console_rect(panel, x, y, bar_width, 1, False, libtcod.BKGND_SCREEN)
+
+    libtcod.console_set_default_foreground(panel, libtcod.white)
+    libtcod.console_print_ex(panel, int(x + total_width / 2), y, libtcod.BKGND_NONE, libtcod.CENTER,
+                            '{0}: {1}/{2}'.format(name, value, maximum))
+
+# Render Entities
+def render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_width, screen_height, 
+                ui_panel, bar_width, ui_panel_height, ui_panel_y, message_log, mouse, colors):
+    
+    # Draw all the tiles in the game map
     if fov_recompute:
         for y in range(game_map.height):
             for x in range(game_map.width):
@@ -32,14 +59,28 @@ def render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_w
     # Draw all entities in the list (Sorted by RenderOrder)
     entities_by_order = sorted(entities, key = lambda x: x.render_order.value)
     for entity in entities_by_order:
-        draw_entity(con, entity, fov_map)
-
-    # Healthbar
-    libtcod.console_set_default_foreground(con, libtcod.white)
-    libtcod.console_print_ex(con, 1, screen_height - 2, libtcod.BKGND_NONE, libtcod.LEFT,
-                            'HP: {0:02}/{1:02}'.format(player.fighter.hp, player.fighter.max_hp))
+        draw_entity(con, entity, fov_map)    
 
     libtcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
+
+    # Render UI
+    libtcod.console_set_default_background(ui_panel, libtcod.black)
+    libtcod.console_clear(ui_panel)
+
+    ## Print messages (1 line at a time)
+    y = 1
+    for message in message_log.messages:
+        libtcod.console_set_default_foreground(ui_panel, message.color)
+        libtcod.console_print_ex(ui_panel, message_log.x, y, libtcod.BKGND_NONE, libtcod.LEFT, message.text)
+        y += 1
+
+    render_bar(ui_panel, 1, 1, bar_width, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.light_red, libtcod.darker_red)
+
+    libtcod.console_set_default_foreground(ui_panel, libtcod.light_gray)
+    libtcod.console_print_ex(ui_panel, 1, 0, libtcod.BKGND_NONE, libtcod.LEFT, get_names_under_mouse(mouse, entities, fov_map))
+
+    # TODO: WHAT THE HECK blit IS DOING?
+    libtcod.console_blit(ui_panel, 0, 0, screen_width, ui_panel_height, 0, 0, ui_panel_y)
 
 def clear_all(con, entities):
     for entity in entities:
