@@ -10,7 +10,8 @@ from map_objects.rectangle import RL_Rect
 
 from entity import Entity
 from render_functions import RenderOrder
-from item_functions import itm_heal
+from item_functions import itm_heal, cast_lightning, cast_fireball, cast_confusion
+from game_messages import Message
 
 class GameMap:
     def __init__(self, width, height):
@@ -98,8 +99,26 @@ class GameMap:
             rand_x = randint(room.x1 + 1, room.x2 - 1)
             rand_y = randint(room.y1 + 1, room.y2 - 1)
             if not any([entity for entity in entities if entity.x == rand_x and entity.y == rand_y]):
-                item_heal_comp = Item(use_function=itm_heal, amount=4)
-                item = Entity(rand_x, rand_y, '!', libtcod.violet, 'Healing Potion', render_order = RenderOrder.ITEM, item=item_heal_comp)
+                item_chance = randint(0, 100)
+
+                if item_chance < 60:
+                    item_heal_comp = Item(use_function=itm_heal, amount=4)
+                    item = Entity(rand_x, rand_y, '!', libtcod.violet, 'Healing Potion', render_order = RenderOrder.ITEM, item=item_heal_comp)
+                elif item_chance < 75:
+                    item_component = Item(use_function=cast_fireball, targeting=True, targeting_message=Message(
+                        'Left-click a target tile for the fireball, or right-click to cancel.', libtcod.light_cyan),
+                                          damage=12, radius=3)
+                    item = Entity(rand_x, rand_y, '#', libtcod.red, 'Fireball Scroll', render_order=RenderOrder.ITEM,
+                                  item=item_component)
+                elif item_chance < 90:
+                    item_component = Item(use_function=cast_confusion, targeting=True, targeting_message=Message(
+                        'Left-click an enemy to confuse it, or right-click to cancel.', libtcod.light_cyan))
+                    item = Entity(rand_x, rand_y, '#', libtcod.light_pink, 'Confusion Scroll', render_order=RenderOrder.ITEM,
+                                  item=item_component)
+                else:
+                    item_scroll_lightning_comp = Item(use_function=cast_lightning, damage=20, maximum_range=5)
+                    item = Entity(rand_x, rand_y, '#', libtcod.yellow, 'Lightning Scroll', render_order = RenderOrder.ITEM, item=item_scroll_lightning_comp)
+
                 entities.append(item)
 
     def create_h_tunnel(self, x1, x2, y):

@@ -13,10 +13,17 @@ class RenderOrder(Enum):
 
 def get_names_under_mouse(mouse, entities, fov_map):
     (x, y) = (mouse.cx, mouse.cy)
+    
+    names = []
+    
+    for entity in entities:
+        if entity.x == x and entity.y == y and libtcod.map_is_in_fov(fov_map, entity.x, entity.y):
+            if entity.fighter:
+                names.append('{0} HP: {1}/{2}'.format(entity.name, entity.fighter.hp, entity.fighter.max_hp))
+            else:
+                names.append(entity.name)
 
-    names = [entity.name for entity in entities
-            if entity.x == x and entity.y == y and libtcod.map_is_in_fov(fov_map, entity.x, entity.y)]
-    names = ', '.join(names)
+    names = '; '.join(names)
 
     return names.capitalize()
 
@@ -80,6 +87,7 @@ def render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_w
     render_bar(ui_panel, 1, 1, bar_width, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.light_red, libtcod.darker_red)
 
     libtcod.console_set_default_foreground(ui_panel, libtcod.light_gray)
+    ### Hover mouse entities
     libtcod.console_print_ex(ui_panel, 1, 0, libtcod.BKGND_NONE, libtcod.LEFT, get_names_under_mouse(mouse, entities, fov_map))
 
     # TODO: WHAT THE HECK blit IS DOING?

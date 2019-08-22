@@ -7,6 +7,8 @@ def handle_keys(key, game_state):
         return handle_keys_player_turn(key)
     elif game_state == GameStates.PLAYER_DEAD:
         return handle_keys_player_dead(key)
+    elif game_state == GameStates.TARGETING:
+        return handle_keys_targeting(key)
     elif game_state in (GameStates.SHOW_INVENTORY, GameStates.DROP_INVENTORY):
         return handle_keys_inventory(key)
 
@@ -47,6 +49,12 @@ def handle_keys_player_turn(key):
 
     return {}
 
+def handle_keys_targeting(key):
+    if key.vk == libtcod.KEY_ESCAPE:
+        return {'exit': True}
+
+    return {}
+
 def handle_keys_inventory(key):
     index = key.c - ord('a')
 
@@ -74,5 +82,15 @@ def handle_keys_player_dead(key):
     elif key.vk == libtcod.KEY_ESCAPE:
         # Exit the menu
         return {'exit': True}
+
+    return {}
+
+def handle_mouse(mouse):
+    (x, y) = (mouse.cx, mouse.cy)
+
+    if mouse.lbutton_pressed:
+        return {'left_click': (x, y)}
+    elif mouse.rbutton_pressed:
+        return {'right_click': (x, y)}
 
     return {}
